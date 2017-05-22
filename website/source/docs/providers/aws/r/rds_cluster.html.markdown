@@ -31,7 +31,7 @@ for more information.
 
 ## Example Usage
 
-```
+```hcl
 resource "aws_rds_cluster" "default" {
   cluster_identifier      = "aurora-cluster-demo"
   availability_zones      = ["us-west-2a", "us-west-2b", "us-west-2c"]
@@ -53,8 +53,8 @@ the [AWS official documentation](https://docs.aws.amazon.com/AmazonRDS/latest/Co
 
 The following arguments are supported:
 
-* `cluster_identifier` - (Required) The Cluster Identifier. Must be a lower case
-string.
+* `cluster_identifier` - (Optional, Forces new resources) The cluster identifier. If omitted, Terraform will assign a random, unique identifier.
+* `cluster_identifier_prefix` - (Optional, Forces new resource) Creates a unique cluster identifier beginning with the specified prefix. Conflicts with `cluster_identifer`.
 * `database_name` - (Optional) The name for your database of up to 8 alpha-numeric
   characters. If you do not provide a name, Amazon RDS will not create a
   database in the DB cluster you are creating
@@ -111,7 +111,6 @@ load-balanced across replicas
 * `replication_source_identifier` - ARN  of the source DB cluster if this DB cluster is created as a Read Replica.
 
 [1]: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Replication.html
-
 [2]: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Aurora.html
 [3]: /docs/providers/aws/r/rds_cluster_instance.html
 [4]: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.Maintenance.html

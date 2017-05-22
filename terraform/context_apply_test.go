@@ -4430,6 +4430,7 @@ func TestContext2Apply_provisionerDestroyFailContinue(t *testing.T) {
 	p.ApplyFn = testApplyFn
 	p.DiffFn = testDiffFn
 
+	var l sync.Mutex
 	var calls []string
 	pr.ApplyFn = func(rs *InstanceState, c *ResourceConfig) error {
 		val, ok := c.Config["foo"]
@@ -4437,6 +4438,8 @@ func TestContext2Apply_provisionerDestroyFailContinue(t *testing.T) {
 			t.Fatalf("bad value for foo: %v %#v", val, c)
 		}
 
+		l.Lock()
+		defer l.Unlock()
 		calls = append(calls, val.(string))
 		return fmt.Errorf("provisioner error")
 	}
@@ -4501,6 +4504,7 @@ func TestContext2Apply_provisionerDestroyFailContinueFail(t *testing.T) {
 	p.ApplyFn = testApplyFn
 	p.DiffFn = testDiffFn
 
+	var l sync.Mutex
 	var calls []string
 	pr.ApplyFn = func(rs *InstanceState, c *ResourceConfig) error {
 		val, ok := c.Config["foo"]
@@ -4508,6 +4512,8 @@ func TestContext2Apply_provisionerDestroyFailContinueFail(t *testing.T) {
 			t.Fatalf("bad value for foo: %v %#v", val, c)
 		}
 
+		l.Lock()
+		defer l.Unlock()
 		calls = append(calls, val.(string))
 		return fmt.Errorf("provisioner error")
 	}
@@ -8098,5 +8104,34 @@ func TestContext2Apply_terraformEnv(t *testing.T) {
 	expected := "foo"
 	if actual == nil || actual.Value != expected {
 		t.Fatalf("bad: \n%s", actual)
+	}
+}
+
+// verify that multiple config references only create a single depends_on entry
+func TestContext2Apply_multiRef(t *testing.T) {
+	m := testModule(t, "apply-multi-ref")
+	p := testProvider("aws")
+	p.ApplyFn = testApplyFn
+	p.DiffFn = testDiffFn
+
+	ctx := testContext2(t, &ContextOpts{
+		Module: m,
+		Providers: map[string]ResourceProviderFactory{
+			"aws": testProviderFuncFixed(p),
+		},
+	})
+
+	if _, err := ctx.Plan(); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	state, err := ctx.Apply()
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	deps := state.Modules[0].Resources["aws_instance.other"].Dependencies
+	if len(deps) > 1 || deps[0] != "aws_instance.create" {
+		t.Fatalf("expected 1 depends_on entry for aws_instance.create, got %q", deps)
 	}
 }

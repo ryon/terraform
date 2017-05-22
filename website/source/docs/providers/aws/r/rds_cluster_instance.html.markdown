@@ -23,7 +23,7 @@ For more information on Amazon Aurora, see [Aurora on Amazon RDS][2] in the Amaz
 
 ## Example Usage
 
-```
+```hcl
 resource "aws_rds_cluster_instance" "cluster_instances" {
   count              = 2
   identifier         = "aurora-cluster-demo-${count.index}"
@@ -47,8 +47,8 @@ the [AWS official documentation](https://docs.aws.amazon.com/AmazonRDS/latest/Co
 
 The following arguments are supported:
 
-* `identifier` - (Optional) The Instance Identifier. Must be a lower case
-string. If omitted, a unique identifier will be generated.
+* `identifier` - (Optional, Forces new resource) The indentifier for the RDS instance, if omitted, Terraform will assign a random, unique identifier.
+* `identifier_prefix` - (Optional, Forces new resource) Creates a unique identifier beginning with the specified prefix. Conflicts with `identifer`.
 * `cluster_identifier` - (Required) The identifier of the [`aws_rds_cluster`](/docs/providers/aws/r/rds_cluster.html) in which to launch this instance.
 * `instance_class` - (Required) The instance class to use. For details on CPU
 and memory, see [Scaling Aurora DB Instances][4]. Aurora currently
@@ -75,6 +75,7 @@ what IAM permissions are needed to allow Enhanced Monitoring for RDS Instances.
   Eg: "04:00-09:00"
 * `preferred_maintenance_window` - (Optional) The window to perform maintenance in.
   Syntax: "ddd:hh24:mi-ddd:hh24:mi". Eg: "Mon:00:00-Mon:03:00".
+* `auto_minor_version_upgrade` - (Optional) Indicates that minor engine upgrades will be applied automatically to the DB instance during the maintenance window. Default `true`.
 * `tags` - (Optional) A mapping of tags to assign to the instance.
 
 ## Attributes Reference
